@@ -1,0 +1,1094 @@
+
+
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>🌾 Agro de Ação 3D - Alimente os Animais!</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body { 
+            margin: 0; 
+            padding: 0; 
+            overflow: hidden; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a2a0a;
+            touch-action: none;
+            width: 100%;
+            height: 100%;
+            position: fixed;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+        
+        #intro-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0a2a0a, #1a4a1a);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            text-align: center;
+            backdrop-filter: blur(2px);
+        }
+        
+        .intro-box {
+            background: rgba(0,0,0,0.85);
+            padding: 40px 50px;
+            border-radius: 20px;
+            border: 3px solid #FFD700;
+            max-width: 600px;
+            width: 90%;
+            animation: fadeIn 0.5s ease;
+            box-shadow: 0 0 30px rgba(0,255,0,0.3);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .intro-box h1 {
+            font-size: 42px;
+            margin: 0 0 10px 0;
+            color: #FFD700;
+        }
+        
+        .intro-box h2 {
+            font-size: 24px;
+            margin: 0 0 20px 0;
+            color: #90EE90;
+        }
+        
+        button {
+            margin-top: 25px;
+            padding: 16px 50px;
+            font-size: 22px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(76,175,80,0.5);
+        }
+        
+        button:hover {
+            background: #45a049;
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(76,175,80,0.8);
+        }
+        
+        #ui-container {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            color: white;
+            background: rgba(0,0,0,0.75);
+            padding: 12px 20px;
+            border-radius: 10px;
+            border-left: 4px solid #FFD700;
+            z-index: 100;
+            pointer-events: none;
+            font-family: monospace;
+            font-size: 16px;
+            backdrop-filter: blur(5px);
+            min-width: 260px;
+        }
+        
+        #ui-container h2 {
+            margin: 0 0 8px 0;
+            font-size: 18px;
+            color: #FFD700;
+        }
+        
+        #ui-container p {
+            margin: 5px 0;
+        }
+        
+        #controls-hint {
+            position: fixed;
+            bottom: 15px;
+            left: 15px;
+            color: white;
+            background: rgba(0,0,0,0.7);
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            z-index: 100;
+            pointer-events: none;
+            font-family: monospace;
+            backdrop-filter: blur(4px);
+        }
+        
+        #touch-pad {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 180px;
+            height: 180px;
+            background: rgba(0,0,0,0.6);
+            border-radius: 50%;
+            backdrop-filter: blur(10px);
+            border: 2px solid #FFD700;
+            z-index: 150;
+            display: none;
+            touch-action: none;
+            box-shadow: 0 0 20px rgba(0,255,0,0.3);
+        }
+        
+        #touch-pad::before {
+            content: "🎮";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 40px;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        
+        .touch-stick {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: rgba(255,215,0,0.8);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        
+        .camera-btn {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 60px;
+            height: 60px;
+            background: rgba(0,0,0,0.6);
+            border-radius: 50%;
+            backdrop-filter: blur(10px);
+            border: 2px solid #FFD700;
+            z-index: 150;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+        
+        .camera-btn:active {
+            transform: scale(0.95);
+            background: rgba(0,0,0,0.8);
+        }
+        
+        @media (max-width: 768px) {
+            #touch-pad, .camera-btn {
+                display: block;
+            }
+            #controls-hint {
+                bottom: 220px;
+                font-size: 10px;
+            }
+            .intro-box h1 {
+                font-size: 32px;
+            }
+            .intro-box h2 {
+                font-size: 18px;
+            }
+            .intro-box p {
+                font-size: 14px;
+            }
+            button {
+                padding: 12px 30px;
+                font-size: 18px;
+            }
+        }
+        
+        canvas {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            z-index: 1 !important;
+            display: block !important;
+        }
+        
+        .score-value {
+            color: #FFD700;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .progress-bar {
+            background: #333;
+            border-radius: 10px;
+            height: 8px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            background: #FFD700;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        #fullscreen-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: rgba(0,0,0,0.6);
+            border-radius: 50%;
+            backdrop-filter: blur(8px);
+            border: 2px solid #FFD700;
+            z-index: 160;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            color: white;
+            transition: 0.2s;
+        }
+        
+        #fullscreen-btn:active {
+            transform: scale(0.9);
+        }
+        
+        @media (max-width: 768px) {
+            #fullscreen-btn {
+                bottom: 220px;
+                right: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="intro-screen">
+        <div class="intro-box">
+            <h1>🌾 AGRO DE AÇÃO 3D</h1>
+            <h2>🚜 ALIMENTE OS ANIMAIS! 🐮🐷🐔🐑🐐🐴</h2>
+            <p style="font-size: 18px;"><strong>🎮 CONTROLES:</strong></p>
+            <p>🔹 W / ↑ : Mover para Frente<br>
+               🔹 S / ↓ : Mover para Trás<br>
+               🔹 A / ← : Girar para Esquerda<br>
+               🔹 D / → : Girar para Direita<br>
+               🔹 ESPAÇO : Entrar / Sair do Trator<br>
+               🔹 E : Alimentar animal próximo (com comida do inventário)<br>
+               🔹 R : Reiniciar Jogo</p>
+            <p style="margin-top: 20px; color: #FFD700;">🍎 Colha frutas/vegetais para ganhar COMIDA e alimentar os animais! 🐮</p>
+            <p style="color: #90EE90;">⭐ Cada animal alimentado dá +15 pontos! Mantenha todos felizes!</p>
+            <button id="startBtn">🚜 INICIAR JORNADA 🌾</button>
+        </div>
+    </div>
+
+    <div id="ui-container" style="display: none;">
+        <h2>🌾 FAZENDA SUSTENTÁVEL</h2>
+        <p>⭐ PONTOS: <span id="score" class="score-value">0</span></p>
+        <p>🍎 COMIDA DISPONÍVEL: <span id="foodInventory" style="color:#FFA500;">0</span> 🥕</p>
+        <p>🚜 STATUS: <span id="status" style="color:#4CAF50;">No Trator</span></p>
+        <p>🌽 COLHEITAS: <span id="colheitas" style="color:#FFD700;">0</span>/<span id="totalColheitas">24</span></p>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <p>🐮 ANIMAIS FELIZES: <span id="happyAnimals" style="color:#90EE90;">0</span>/<span id="totalAnimals">15</span></p>
+    </div>
+    
+    <div id="controls-hint" style="display: none;">
+        🎮 W/A/S/D ou SETAS | ESPAÇO | E (alimentar)
+    </div>
+    
+    <div id="touch-pad" style="display: none;">
+        <div class="touch-stick"></div>
+    </div>
+    
+    <div class="camera-btn" style="display: none;" id="camResetBtn">
+        🎥
+    </div>
+    
+    <div id="fullscreen-btn" style="display: none;">
+        🖥️
+    </div>
+
+    <script>
+        // ==================== VARIÁVEIS GLOBAIS ====================
+        let tratorX = 0;
+        let tratorZ = 180;
+        let tratorAngulo = 0;
+        let jogadorX = 40;
+        let jogadorZ = 230;
+        let jogadorAngulo = 0;
+        let noTrator = true;
+        let plantacoes = [];
+        let animais = [];
+        let arvores = [];
+        let pontuacao = 0;
+        let jogoIniciado = false;
+        let colheitasRealizadas = 0;
+        let frameCounter = 0;
+        let foodInventory = 0;
+        let mensagemFeedback = "";
+        let mensagemTimer = 0;
+        
+        let touchActive = false;
+        let touchAngle = 0;
+        let touchForce = 0;
+        let cameraOffset = 0;
+        
+        // MUITOS TIPOS DE COLHEITAS!
+        const tiposColheita = [
+            { icone: '🌽', nome: 'Milho', cor: 0xFFD700, pontos: 10, comida: 1 },
+            { icone: '🍎', nome: 'Maçã', cor: 0xFF4444, pontos: 10, comida: 2 },
+            { icone: '🍊', nome: 'Laranja', cor: 0xFFA500, pontos: 10, comida: 1 },
+            { icone: '🍓', nome: 'Morango', cor: 0xFF69B4, pontos: 10, comida: 1 },
+            { icone: '🍅', nome: 'Tomate', cor: 0xDC143C, pontos: 10, comida: 1 },
+            { icone: '🥕', nome: 'Cenoura', cor: 0xFF8C00, pontos: 10, comida: 2 },
+            { icone: '🌾', nome: 'Trigo', cor: 0xDEB887, pontos: 10, comida: 1 },
+            { icone: '🌻', nome: 'Girassol', cor: 0xFFD700, pontos: 10, comida: 1 },
+            { icone: '🍇', nome: 'Uva', cor: 0x8B008B, pontos: 10, comida: 1 },
+            { icone: '🥬', nome: 'Alface', cor: 0x32CD32, pontos: 10, comida: 1 },
+            { icone: '🫐', nome: 'Mirtilo', cor: 0x4169E1, pontos: 10, comida: 1 },
+            { icone: '🥝', nome: 'Kiwi', cor: 0x8B7D3C, pontos: 10, comida: 2 }
+        ];
+        
+        // TIPOS DE ANIMAIS
+        const tiposAnimais = [
+            { icone: '🐮', nome: 'Vaca', cor: 0xF5F5DC, fomeMax: 100, fomeDecay: 0.15, pontosAlimentar: 15 },
+            { icone: '🐷', nome: 'Porco', cor: 0xFFB6C1, fomeMax: 100, fomeDecay: 0.18, pontosAlimentar: 15 },
+            { icone: '🐔', nome: 'Galinha', cor: 0xFFD700, fomeMax: 100, fomeDecay: 0.12, pontosAlimentar: 15 },
+            { icone: '🐑', nome: 'Ovelha', cor: 0xEEEEEE, fomeMax: 100, fomeDecay: 0.14, pontosAlimentar: 15 },
+            { icone: '🐐', nome: 'Cabra', cor: 0xCD853F, fomeMax: 100, fomeDecay: 0.16, pontosAlimentar: 15 },
+            { icone: '🐴', nome: 'Cavalo', cor: 0x8B4513, fomeMax: 100, fomeDecay: 0.13, pontosAlimentar: 15 }
+        ];
+        
+        // ==================== FUNÇÃO PRINCIPAL ====================
+        function setup() {
+            const canvas = createCanvas(windowWidth, windowHeight, WEBGL);
+            canvas.parent(document.body);
+            canvas.style('position', 'fixed');
+            canvas.style('top', '0');
+            canvas.style('left', '0');
+            canvas.style('width', '100%');
+            canvas.style('height', '100%');
+            canvas.style('z-index', '1');
+            canvas.style('display', 'block');
+            
+            frameRate(60);
+            
+            const startBtn = document.getElementById('startBtn');
+            if (startBtn) startBtn.addEventListener('click', iniciarJogo);
+            
+            configurarTouchPad();
+            
+            const camBtn = document.getElementById('camResetBtn');
+            if (camBtn) camBtn.addEventListener('click', () => { cameraOffset = 0; mostrarFeedback("📷 Câmera resetada!", 60); });
+            
+            const fullBtn = document.getElementById('fullscreen-btn');
+            if (fullBtn) fullBtn.addEventListener('click', toggleFullscreen);
+            
+            window.addEventListener('keydown', function(e) {
+                const teclas = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'w', 's', 'a', 'd', 'e', 'E'];
+                if (teclas.includes(e.key) && jogoIniciado) e.preventDefault();
+                if (e.key === 'f' || e.key === 'F') { e.preventDefault(); toggleFullscreen(); }
+                if ((e.key === 'e' || e.key === 'E') && jogoIniciado) alimentarAnimalProximo();
+            });
+            
+            console.log("Canvas criado! Sistema de alimentação ativo!");
+        }
+        
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+        
+        function mostrarFeedback(msg, duracaoFrames = 90) {
+            mensagemFeedback = msg;
+            mensagemTimer = duracaoFrames;
+        }
+        
+        function configurarTouchPad() {
+            const touchPad = document.getElementById('touch-pad');
+            const stick = touchPad.querySelector('.touch-stick');
+            
+            touchPad.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                touchActive = true;
+                const rect = touchPad.getBoundingClientRect();
+                const centerX = rect.left + rect.width/2;
+                const centerY = rect.top + rect.height/2;
+                const touch = e.touches[0];
+                let dx = touch.clientX - centerX;
+                let dy = touch.clientY - centerY;
+                let distance = Math.min(Math.sqrt(dx*dx + dy*dy), 70);
+                touchForce = distance / 70;
+                touchAngle = Math.atan2(dy, dx);
+                stick.style.transform = `translate(calc(-50% + ${dx * 0.5}px), calc(-50% + ${dy * 0.5}px))`;
+            });
+            
+            touchPad.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (touchActive) {
+                    const rect = touchPad.getBoundingClientRect();
+                    const centerX = rect.left + rect.width/2;
+                    const centerY = rect.top + rect.height/2;
+                    const touch = e.touches[0];
+                    let dx = touch.clientX - centerX;
+                    let dy = touch.clientY - centerY;
+                    let distance = Math.min(Math.sqrt(dx*dx + dy*dy), 70);
+                    touchForce = distance / 70;
+                    touchAngle = Math.atan2(dy, dx);
+                    stick.style.transform = `translate(calc(-50% + ${dx * 0.5}px), calc(-50% + ${dy * 0.5}px))`;
+                }
+            });
+            
+            touchPad.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                touchActive = false;
+                touchForce = 0;
+                stick.style.transform = 'translate(-50%, -50%)';
+            });
+        }
+        
+        function iniciarJogo() {
+            console.log("Iniciando jogo com SISTEMA DE ALIMENTAÇÃO!");
+            
+            document.getElementById('intro-screen').style.display = 'none';
+            document.getElementById('ui-container').style.display = 'block';
+            document.getElementById('controls-hint').style.display = 'block';
+            document.getElementById('touch-pad').style.display = 'block';
+            document.getElementById('camResetBtn').style.display = 'flex';
+            document.getElementById('fullscreen-btn').style.display = 'flex';
+            
+            jogoIniciado = true;
+            
+            tratorX = 0;
+            tratorZ = 180;
+            tratorAngulo = 0;
+            jogadorX = 40;
+            jogadorZ = 230;
+            jogadorAngulo = 0;
+            noTrator = true;
+            pontuacao = 0;
+            colheitasRealizadas = 0;
+            foodInventory = 0;
+            
+            // GERAR 24 COLHEITAS de diversos tipos!
+            plantacoes = [];
+            const areas = [
+                { minX: -500, maxX: -150, minZ: -100, maxZ: 180, count: 14 },
+                { minX: 100, maxX: 400, minZ: -200, maxZ: -50, count: 6 },
+                { minX: 50, maxX: 200, minZ: 100, maxZ: 250, count: 4 }
+            ];
+            
+            let totalToGenerate = 24;
+            let colheitaIndex = 0;
+            
+            for (let i = 0; i < totalToGenerate; i++) {
+                let tipo = tiposColheita[colheitaIndex % tiposColheita.length];
+                colheitaIndex++;
+                
+                let area;
+                if (i < 14) area = areas[0];
+                else if (i < 20) area = areas[1];
+                else area = areas[2];
+                
+                plantacoes.push({
+                    x: random(area.minX, area.maxX),
+                    z: random(area.minZ, area.maxZ),
+                    colhida: false,
+                    tipo: tipo.icone,
+                    nome: tipo.nome,
+                    cor: tipo.cor,
+                    pontos: tipo.pontos,
+                    comida: tipo.comida,
+                    alturaPlanta: random(30, 45)
+                });
+            }
+            
+            for (let i = 0; i < plantacoes.length; i++) {
+                for (let j = i+1; j < plantacoes.length; j++) {
+                    if (dist(plantacoes[i].x, plantacoes[i].z, plantacoes[j].x, plantacoes[j].z) < 45) {
+                        plantacoes[j].x += random(30, 60);
+                        plantacoes[j].z += random(30, 60);
+                    }
+                }
+            }
+            
+            // GERAR 15 ANIMAIS (muitos!)
+            animais = [];
+            const areasAnimais = [
+                { minX: 180, maxX: 340, minZ: -30, maxZ: 160 },
+                { minX: -150, maxX: -50, minZ: 50, maxZ: 150 },
+                { minX: 250, maxX: 400, minZ: 180, maxZ: 280 }
+            ];
+            
+            for (let i = 0; i < 15; i++) {
+                let tipo = tiposAnimais[i % tiposAnimais.length];
+                let area = areasAnimais[floor(random(areasAnimais.length))];
+                animais.push({
+                    x: random(area.minX, area.maxX),
+                    z: random(area.minZ, area.maxZ),
+                    angulo: random(TWO_PI),
+                    velocidade: random(0.5, 1.2),
+                    direcao: random(TWO_PI),
+                    icone: tipo.icone,
+                    nome: tipo.nome,
+                    cor: tipo.cor,
+                    fome: random(40, 100),
+                    fomeMax: tipo.fomeMax,
+                    fomeDecay: tipo.fomeDecay,
+                    pontosAlimentar: tipo.pontosAlimentar,
+                    alimentado: false
+                });
+            }
+            
+            // Árvores decorativas
+            arvores = [];
+            for (let i = 0; i < 35; i++) {
+                arvores.push({
+                    x: random(-650, 650),
+                    z: random(-500, -120)
+                });
+            }
+            for (let i = 0; i < 15; i++) {
+                arvores.push({
+                    x: random(80, 420),
+                    z: random(-220, -70)
+                });
+            }
+            
+            document.getElementById("totalColheitas").innerText = plantacoes.length;
+            document.getElementById("totalAnimals").innerText = animais.length;
+            atualizarProgresso();
+        }
+        
+        function alimentarAnimalProximo() {
+            if (!jogoIniciado) return;
+            if (foodInventory <= 0) {
+                mostrarFeedback("🍽️ Sem comida! Colha mais plantações!", 90);
+                return;
+            }
+            
+            let personagemX = noTrator ? tratorX : jogadorX;
+            let personagemZ = noTrator ? tratorZ : jogadorZ;
+            let animalAlimentado = false;
+            
+            for (let animal of animais) {
+                let distancia = dist(personagemX, personagemZ, animal.x, animal.z);
+                if (distancia < 80 && animal.fome > 0) {
+                    let comidaNecessaria = min(30, animal.fomeMax - animal.fome);
+                    if (comidaNecessaria > 0) {
+                        foodInventory--;
+                        animal.fome = min(animal.fomeMax, animal.fome + 25);
+                        pontuacao += animal.pontosAlimentar;
+                        mostrarFeedback(`🍼 Você alimentou ${animal.icone} ${animal.nome}! +${animal.pontosAlimentar} pontos`, 70);
+                        animalAlimentado = true;
+                        break;
+                    } else if (animal.fome >= animal.fomeMax) {
+                        mostrarFeedback(`😋 ${animal.icone} ${animal.nome} já está satisfeito!`, 60);
+                        animalAlimentado = true;
+                        break;
+                    }
+                }
+            }
+            
+            if (!animalAlimentado) {
+                mostrarFeedback("🐾 Chegue mais perto de um animal faminto para alimentá-lo!", 80);
+            }
+        }
+        
+        function atualizarProgresso() {
+            const total = plantacoes.length;
+            const percent = (colheitasRealizadas / total) * 100;
+            const progressFill = document.getElementById('progressFill');
+            if (progressFill) progressFill.style.width = percent + '%';
+        }
+        
+        function windowResized() {
+            resizeCanvas(windowWidth, windowHeight);
+            const cnv = document.querySelector('canvas');
+            if (cnv) { cnv.style.width = '100%'; cnv.style.height = '100%'; }
+        }
+        
+        function draw() {
+            if (!jogoIniciado) {
+                background(20, 40, 20);
+                return;
+            }
+            
+            if (mensagemTimer > 0) mensagemTimer--;
+            
+            frameCounter++;
+            atualizarMovimento();
+            animarAnimais();
+            verificarColheita();
+            
+            background(100, 180, 240);
+            ambientLight(150);
+            directionalLight(255, 255, 200, 0.5, 0.8, -0.6);
+            pointLight(200, 200, 150, 0, 100, 0);
+            
+            // Chão
+            push();
+            translate(0, 25, 0);
+            rotateX(HALF_PI);
+            fill(45, 120, 45);
+            plane(2000, 2000);
+            for (let i = -900; i <= 900; i += 100) {
+                for (let j = -900; j <= 900; j += 100) {
+                    push();
+                    translate(i, 1, j);
+                    fill(50, 130, 50);
+                    box(95, 3, 95);
+                    pop();
+                }
+            }
+            pop();
+            
+            // Estrada
+            push();
+            fill(101, 67, 33);
+            for (let i = -700; i <= 700; i += 90) {
+                push();
+                translate(i, 26, -280);
+                box(55, 5, 550);
+                pop();
+            }
+            pop();
+            
+            desenharCidade();
+            
+            for (let arv of arvores) desenharArvore(arv.x, arv.z);
+            desenharCercado(250, 50, 15, 300, 250);
+            desenharCocho(200, 45, 180);
+            
+            for (let animal of animais) desenharAnimal(animal.x, animal.z, animal.angulo, animal);
+            
+            for (let p of plantacoes) desenharPlantacaoColorida(p);
+            
+            // Câmera
+            if (noTrator) {
+                let camX = tratorX - sin(tratorAngulo) * (220 + cameraOffset);
+                let camZ = tratorZ - cos(tratorAngulo) * (220 + cameraOffset);
+                camera(camX, -140, camZ, tratorX, 0, tratorZ, 0, 1, 0);
+            } else {
+                let camX = jogadorX - sin(jogadorAngulo) * (150 + cameraOffset);
+                let camZ = jogadorZ - cos(jogadorAngulo) * (150 + cameraOffset);
+                camera(camX, -100, camZ, jogadorX, 0, jogadorZ, 0, 1, 0);
+            }
+            
+            desenharTratorAzul();
+            if (!noTrator) desenharJogador();
+            
+            desenharFeedback();
+            atualizarUI();
+            
+            let animaisFelizes = animais.filter(a => a.fome >= a.fomeMax * 0.7).length;
+            let todasColhidas = plantacoes.filter(p => !p.colhida).length === 0;
+            
+            if (todasColhidas && animaisFelizes >= animais.length) {
+                desenharVitoria();
+            }
+        }
+        
+        function desenharFeedback() {
+            if (mensagemTimer > 0 && mensagemFeedback) {
+                push();
+                fill(0, 0, 0, 200);
+                rect(-width/2 + 20, -height/2 + 80, 400, 50);
+                fill(255, 215, 0);
+                textSize(20);
+                textAlign(CENTER, CENTER);
+                text(mensagemFeedback, -width/2 + 220, -height/2 + 105);
+                pop();
+            }
+        }
+        
+        function desenharCocho(x, y, z) {
+            push();
+            translate(x, y, z);
+            fill(139, 69, 19);
+            box(60, 15, 40);
+            fill(101, 67, 33);
+            translate(0, -8, 0);
+            box(70, 8, 45);
+            fill(218, 165, 32);
+            translate(0, -5, 0);
+            box(55, 5, 35);
+            pop();
+        }
+        
+        function desenharPlantacaoColorida(p) {
+            push();
+            translate(p.x, 12, p.z);
+            
+            if (!p.colhida) {
+                let corR = (p.cor >> 16) & 255;
+                let corG = (p.cor >> 8) & 255;
+                let corB = p.cor & 255;
+                fill(corR, corG, corB);
+                box(38, 22, 38);
+                fill(60, 160, 60);
+                translate(0, -18, 0);
+                cylinder(6, p.alturaPlanta);
+                textSize(32);
+                textAlign(CENTER, CENTER);
+                fill(0);
+                text(p.tipo, 0, -p.alturaPlanta - 5);
+                fill(corR, corG, corB);
+                push();
+                translate(12, -28, 12);
+                sphere(8);
+                pop();
+                push();
+                translate(-12, -30, -10);
+                sphere(7);
+                pop();
+            } else {
+                fill(101, 67, 33);
+                box(40, 6, 40);
+                fill(80, 50, 20);
+                translate(0, -5, 0);
+                box(35, 3, 35);
+            }
+            pop();
+        }
+        
+        function desenharAnimal(x, z, angulo, animal) {
+            push();
+            translate(x, 18, z);
+            rotateY(angulo);
+            
+            let fomePercent = animal.fome / animal.fomeMax;
+            let corR = (animal.cor >> 16) & 255;
+            let corG = (animal.cor >> 8) & 255;
+            let corB = animal.cor & 255;
+            fill(corR, corG, corB);
+            box(28, 24, 42);
+            
+            fill(50, 50, 50);
+            push();
+            translate(-12, -8, 20);
+            sphere(4);
+            translate(24, 0, 0);
+            sphere(4);
+            pop();
+            
+            fill(0);
+            push();
+            translate(-8, -3, 22);
+            sphere(2.5);
+            translate(16, 0, 0);
+            sphere(2.5);
+            pop();
+            
+            textSize(20);
+            textAlign(CENTER, CENTER);
+            fill(0);
+            text(animal.icone, 0, -25);
+            
+            // Barra de fome
+            push();
+            translate(0, -35, 0);
+            fill(80, 0, 0);
+            rect(-20, -5, 40, 8);
+            fill(255, 100 + (1-fomePercent)*155, 0);
+            rect(-20, -5, 40 * fomePercent, 8);
+            pop();
+            
+            pop();
+        }
+        
+        function desenharTratorAzul() {
+            push();
+            translate(tratorX, 18, tratorZ);
+            rotateY(tratorAngulo);
+            fill(30, 90, 200);
+            box(60, 28, 90);
+            fill(40, 120, 210);
+            translate(0, -22, -18);
+            box(48, 32, 48);
+            fill(25, 80, 180);
+            translate(0, -20, 0);
+            box(52, 8, 55);
+            fill(255, 140, 0);
+            push();
+            translate(0, 8, -42);
+            box(40, 4, 6);
+            pop();
+            push();
+            translate(0, -5, -42);
+            box(35, 3, 5);
+            pop();
+            fill(35, 35, 35);
+            push();
+            translate(-32, 32, 25);
+            rotateZ(HALF_PI);
+            cylinder(18, 14);
+            pop();
+            push();
+            translate(32, 32, 25);
+            rotateZ(HALF_PI);
+            cylinder(18, 14);
+            pop();
+            push();
+            translate(-28, 28, -30);
+            rotateZ(HALF_PI);
+            cylinder(14, 12);
+            pop();
+            push();
+            translate(28, 28, -30);
+            rotateZ(HALF_PI);
+            cylinder(14, 12);
+            pop();
+            fill(180, 180, 200);
+            push();
+            translate(-32, 32, 25);
+            sphere(8);
+            pop();
+            push();
+            translate(32, 32, 25);
+            sphere(8);
+            pop();
+            fill(100, 150, 220);
+            push();
+            translate(-20, -25, -20);
+            cylinder(6, 40);
+            pop();
+            fill(255, 220, 80);
+            push();
+            translate(20, 0, -45);
+            sphere(6);
+            pop();
+            push();
+            translate(-20, 0, -45);
+            sphere(6);
+            pop();
+            fill(15, 60, 150);
+            push();
+            translate(0, -2, -45);
+            box(36, 12, 3);
+            pop();
+            pop();
+        }
+        
+        function desenharJogador() {
+            push();
+            translate(jogadorX, 12, jogadorZ);
+            rotateY(jogadorAngulo);
+            fill(30, 120, 210);
+            box(16, 30, 16);
+            fill(255, 220, 180);
+            translate(0, -24, 0);
+            sphere(11);
+            fill(180, 130, 60);
+            translate(0, -7, 0);
+            cylinder(20, 5);
+            fill(210, 160, 80);
+            cylinder(15, 3);
+            pop();
+        }
+        
+        function desenharArvore(x, z) {
+            push();
+            translate(x, 0, z);
+            fill(110, 70, 30);
+            cylinder(15, 60);
+            fill(40, 160, 40);
+            translate(0, -55, 0);
+            sphere(35);
+            fill(60, 190, 60);
+            sphere(22);
+            pop();
+        }
+        
+        function desenharCercado(x, z, y, largura, profundidade) {
+            push();
+            translate(x, y, z);
+            for (let i = -largura/2; i <= largura/2; i += 45) {
+                fill(160, 100, 40);
+                push(); translate(i, 0, -profundidade/2); box(10, 55, 10); pop();
+                push(); translate(i, 0, profundidade/2); box(10, 55, 10); pop();
+            }
+            for (let i = -profundidade/2; i <= profundidade/2; i += 45) {
+                fill(160, 100, 40);
+                push(); translate(-largura/2, 0, i); box(10, 55, 10); pop();
+                push(); translate(largura/2, 0, i); box(10, 55, 10); pop();
+            }
+            pop();
+        }
+        
+        function desenharCidade() {
+            push();
+            translate(550, 0, -450);
+            for (let i = 0; i < 8; i++) {
+                push();
+                translate(i * 65, 30, 0);
+                fill(100, 100, 140);
+                box(45, 110, 45);
+                fill(255, 255, 150);
+                for (let j = 0; j < 5; j++) {
+                    push(); translate(0, -40 + j * 22, 20); box(14, 14, 4); pop();
+                }
+                pop();
+            }
+            pop();
+        }
+        
+        function desenharVitoria() {
+            push();
+            fill(0, 0, 0, 200);
+            rect(-width/2, -height/2, width, height);
+            fill(255, 215, 0);
+            textSize(48);
+            textAlign(CENTER, CENTER);
+            text("🏆 VITÓRIA! 🏆", 0, -80);
+            fill(255);
+            textSize(26);
+            text("Você colheu todas as plantações e alimentou todos os animais!", 0, -20);
+            text("Parabéns, mestre agricultor!", 0, 30);
+            fill(200);
+            textSize(20);
+            text("🐮🐷🐔🐑🐐🐴 Todos os animais estão felizes! 🌾🍎🌽", 0, 90);
+            text("Pressione R para jogar novamente", 0, 140);
+            pop();
+        }
+        
+        function atualizarMovimento() {
+            let vel = noTrator ? 5.5 : 3.2;
+            let anguloVel = 0.045;
+            let moverFrente = false, moverTras = false, girarEsquerda = false, girarDireita = false;
+            
+            if (keyIsDown(87) || keyIsDown(UP_ARROW)) moverFrente = true;
+            if (keyIsDown(83) || keyIsDown(DOWN_ARROW)) moverTras = true;
+            if (keyIsDown(65) || keyIsDown(LEFT_ARROW)) girarEsquerda = true;
+            if (keyIsDown(68) || keyIsDown(RIGHT_ARROW)) girarDireita = true;
+            
+            if (touchActive && touchForce > 0.1) {
+                let angleDiff = touchAngle - (noTrator ? tratorAngulo : jogadorAngulo);
+                if (Math.abs(angleDiff) < 0.5) moverFrente = true;
+                else if (angleDiff > 0) girarEsquerda = true;
+                else girarDireita = true;
+            }
+            
+            if (moverFrente) {
+                if (noTrator) { tratorX += sin(tratorAngulo) * vel; tratorZ += cos(tratorAngulo) * vel; }
+                else { jogadorX += sin(jogadorAngulo) * vel; jogadorZ += cos(jogadorAngulo) * vel; }
+            }
+            if (moverTras) {
+                let velBack = vel * 0.6;
+                if (noTrator) { tratorX -= sin(tratorAngulo) * velBack; tratorZ -= cos(tratorAngulo) * velBack; }
+                else { jogadorX -= sin(jogadorAngulo) * velBack; jogadorZ -= cos(jogadorAngulo) * velBack; }
+            }
+            if (girarEsquerda) { if (noTrator) tratorAngulo += anguloVel; else jogadorAngulo += anguloVel; }
+            if (girarDireita) { if (noTrator) tratorAngulo -= anguloVel; else jogadorAngulo -= anguloVel; }
+            
+            if (noTrator) { tratorX = constrain(tratorX, -650, 700); tratorZ = constrain(tratorZ, -480, 480); }
+            else { jogadorX = constrain(jogadorX, -650, 700); jogadorZ = constrain(jogadorZ, -480, 480); }
+        }
+        
+        function animarAnimais() {
+            for (let animal of animais) {
+                animal.x += sin(animal.direcao) * animal.velocidade;
+                animal.z += cos(animal.direcao) * animal.velocidade;
+                animal.angulo = atan2(sin(animal.direcao), cos(animal.direcao));
+                animal.x = constrain(animal.x, 140, 400);
+                animal.z = constrain(animal.z, -40, 280);
+                if (random() < 0.02) animal.direcao = random(TWO_PI);
+                
+                animal.fome = max(0, animal.fome - animal.fomeDecay * 0.5);
+                if (animal.fome <= 0) {
+                    animal.fome = 0;
+                }
+            }
+        }
+        
+        function verificarColheita() {
+            if (!noTrator) return;
+            for (let p of plantacoes) {
+                if (!p.colhida && dist(tratorX, tratorZ, p.x, p.z) < 65) {
+                    p.colhida = true;
+                    pontuacao += p.pontos;
+                    foodInventory += p.comida;
+                    colheitasRealizadas++;
+                    atualizarProgresso();
+                    mostrarFeedback(`🌾 Colheu ${p.tipo} ${p.nome}! +${p.pontos} pontos e +${p.comida} comida!`, 70);
+                }
+            }
+        }
+        
+        function atualizarUI() {
+            const scoreEl = document.getElementById("score");
+            const statusEl = document.getElementById("status");
+            const colheitasEl = document.getElementById("colheitas");
+            const foodEl = document.getElementById("foodInventory");
+            const happyEl = document.getElementById("happyAnimals");
+            
+            if (scoreEl) scoreEl.innerText = pontuacao;
+            if (statusEl) statusEl.innerText = noTrator ? "🚜 No Trator" : "👨‍🌾 A Pé";
+            if (colheitasEl) colheitasEl.innerText = colheitasRealizadas;
+            if (foodEl) foodEl.innerText = foodInventory;
+            if (happyEl) {
+                let animaisFelizes = animais.filter(a => a.fome >= a.fomeMax * 0.7).length;
+                happyEl.innerText = animaisFelizes;
+            }
+        }
+        
+        function keyPressed() {
+            if (!jogoIniciado) return false;
+            if (key === ' ') {
+                if (noTrator) {
+                    jogadorX = tratorX + 60;
+                    jogadorZ = tratorZ;
+                    jogadorAngulo = tratorAngulo;
+                    noTrator = false;
+                } else {
+                    if (dist(tratorX, tratorZ, jogadorX, jogadorZ) < 120) noTrator = true;
+                }
+                return false;
+            }
+            if (key === 'r' || key === 'R') { iniciarJogo(); return false; }
+            return false;
+        }
+        
+        function keyTyped() {
+            if (jogoIniciado && ['w', 's', 'a', 'd', ' ', 'e', 'E'].includes(key)) return false;
+        }
+    </script>
+</body>
+</html>
+```
